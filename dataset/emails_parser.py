@@ -83,7 +83,7 @@ def publish_to_es(input_csv_path):
         row['To'] = to
         try:
             j = json.dumps(row, indent=2)
-            es.index(index='emails-1', doc_type='email', body=j)
+            es.index(index='emails-2', doc_type='email', body=j)
         except TypeError:
             print(row)
 
