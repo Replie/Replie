@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cd70918d-4fa7-4d3f-b32d-6a71c2f57121" name="Default" comment="lo">
+    <list default="true" id="cd70918d-4fa7-4d3f-b32d-6a71c2f57121" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/dataset/emails_parser.py" afterPath="$PROJECT_DIR$/dataset/emails_parser.py" />
     </list>
@@ -34,8 +34,8 @@
       <file leaf-file-name="emails_parser.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dataset/emails_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1000">
-              <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
+            <state relative-caret-position="305">
+              <caret line="26" column="20" lean-forward="true" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
               <folding>
                 <element signature="e#116#126#0" expanded="true" />
               </folding>
@@ -494,7 +494,14 @@
       <option name="project" value="LOCAL" />
       <updated>1515000036495</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="mor logging">
+      <created>1515000275135</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1515000275135</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -540,7 +547,8 @@
     <MESSAGE value="handle csv.error line too long" />
     <MESSAGE value="increase max size" />
     <MESSAGE value="# handle all errors&#10;# added logger&#10;# id is now message-ID" />
-    <option name="LAST_COMMIT_MESSAGE" value="# handle all errors&#10;# added logger&#10;# id is now message-ID" />
+    <MESSAGE value="mor logging" />
+    <option name="LAST_COMMIT_MESSAGE" value="mor logging" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -857,8 +865,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dataset/emails_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1000">
-          <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
+        <state relative-caret-position="305">
+          <caret line="26" column="20" lean-forward="true" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
           <folding>
             <element signature="e#116#126#0" expanded="true" />
           </folding>

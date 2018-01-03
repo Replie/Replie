@@ -23,7 +23,7 @@ log.setLevel(logging.DEBUG)
 hand = logging.FileHandler("log_email_parser.log")
 hand.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-hand.setLevel(formatter)
+hand.setFormatter(formatter)
 log.addHandler(hand)
 
 
