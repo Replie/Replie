@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cd70918d-4fa7-4d3f-b32d-6a71c2f57121" name="Default" comment="# handle all errors&#10;# added logger&#10;# id is now message-ID">
+    <list default="true" id="cd70918d-4fa7-4d3f-b32d-6a71c2f57121" name="Default" comment="lo">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/dataset/emails_parser.py" afterPath="$PROJECT_DIR$/dataset/emails_parser.py" />
     </list>
@@ -34,8 +34,8 @@
       <file leaf-file-name="emails_parser.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dataset/emails_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="123">
-              <caret line="95" column="62" lean-forward="true" selection-start-line="95" selection-start-column="62" selection-end-line="95" selection-end-column="62" />
+            <state relative-caret-position="1000">
+              <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
               <folding>
                 <element signature="e#116#126#0" expanded="true" />
               </folding>
@@ -487,7 +487,14 @@
       <option name="project" value="LOCAL" />
       <updated>1514995107213</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="# handle all errors&#10;# added logger&#10;# id is now message-ID">
+      <created>1515000036495</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1515000036495</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -532,7 +539,8 @@
     <MESSAGE value="es fix handle err" />
     <MESSAGE value="handle csv.error line too long" />
     <MESSAGE value="increase max size" />
-    <option name="LAST_COMMIT_MESSAGE" value="increase max size" />
+    <MESSAGE value="# handle all errors&#10;# added logger&#10;# id is now message-ID" />
+    <option name="LAST_COMMIT_MESSAGE" value="# handle all errors&#10;# added logger&#10;# id is now message-ID" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -849,8 +857,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dataset/emails_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="123">
-          <caret line="95" column="62" lean-forward="true" selection-start-line="95" selection-start-column="62" selection-end-line="95" selection-end-column="62" />
+        <state relative-caret-position="1000">
+          <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
           <folding>
             <element signature="e#116#126#0" expanded="true" />
           </folding>

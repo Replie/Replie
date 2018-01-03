@@ -19,8 +19,11 @@ maxInt = sys.maxsize
 decrement = True
 
 log = logging.getLogger('emails')
+log.setLevel(logging.DEBUG)
 hand = logging.FileHandler("log_email_parser.log")
 hand.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+hand.setLevel(formatter)
 log.addHandler(hand)
 
 
@@ -79,11 +82,15 @@ def parse(input_csv_path):
 
 
 def publish_to_es(input_csv_path):
+    log.debug("Connecting to ElasticSearch")
     es = Elasticsearch([{'host': '193.106.55.110', 'port': 9200}])
+    log.debug("Reading File")
     csv_file = open(input_csv_path, 'r')
+
     field_names = (
         "Message-ID", "Date", "From", "To", "Subject", "X-From", "X-To", "X-cc", "X-bcc", "X-Folder", "X-Origin",
         "X-FileName", "content", "user")
+
     try:
         csv_file.readline()  # skip headers
         reader = csv.DictReader(csv_file, field_names)
@@ -126,6 +133,7 @@ def publish_to_es(input_csv_path):
 if __name__ == '__main__':
     input_csv = '/Users/tal/Downloads/emails.csv'
     # parse(input_csv)
+    log.debug("Starting Process")
     while decrement:
         # decrease the maxInt value by factor 10
         # as long as the OverflowError occurs.
