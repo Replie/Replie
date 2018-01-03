@@ -88,12 +88,14 @@ def publish_to_es(input_csv_path):
             if to_raw:
                 to = eval(re.sub(r'frozenset\(|\)', "", to_raw))
                 row['To'] = list(to)
-            j = json.dumps(row, indent=2)
+            j = json.dumps(row)
             es.index(index='enron-emails-1', doc_type='email', body=j)
         except TypeError:
             print(row)
         except SyntaxError:
             print("row !!!! %s" % list(row.values()))
+        except csv.Error:
+            print(row)
 
 
 if __name__ == '__main__':
