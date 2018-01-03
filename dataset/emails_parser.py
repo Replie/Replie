@@ -74,7 +74,7 @@ def publish_to_es(input_csv_path):
     field_names = (
         "Message-ID", "Date", "From", "To", "Subject", "X-From", "X-To", "X-cc", "X-bcc", "X-Folder", "X-Origin",
         "X-FileName", "content", "user")
-    csv_file.next()
+    csv_file.readline()
     reader = csv.DictReader(csv_file, field_names)
     for row in reader:
         from_m = eval(re.sub(r'frozenset\(|\)', "", row['From']))
