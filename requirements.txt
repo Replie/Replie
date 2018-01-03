@@ -1,3 +1,5 @@
+elasticsearch
+pandas
 matplotlib
 numpy
 torch
