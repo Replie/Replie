@@ -77,18 +77,26 @@ def publish_to_es(input_csv_path):
     csv_file.readline()
     reader = csv.DictReader(csv_file, field_names)
     for row in reader:
-        from_m = eval(re.sub(r'frozenset\(|\)', "", row['From']))
-        row['From'] = from_m
-        to = eval(re.sub(r'frozenset\(|\)', "", row['To']))
-        row['To'] = to
         try:
+            from_raw = row['From']
+
+            if from_raw:
+                from_m = eval(re.sub(r'frozenset\(|\)', "", from_raw))
+                row['From'] = list(from_m)
+
+            to_raw = row['To']
+            if to_raw:
+                to = eval(re.sub(r'frozenset\(|\)', "", to_raw))
+                row['To'] = list(to)
             j = json.dumps(row, indent=2)
-            es.index(index='emails-2', doc_type='email', body=j)
+            es.index(index='enron-emails-1', doc_type='email', body=j)
         except TypeError:
             print(row)
+        except SyntaxError:
+            print("row !!!! %s" % list(row.values()))
 
 
 if __name__ == '__main__':
     input_csv = '/Users/tal/Downloads/emails.csv'
     # parse(input_csv)
-    publish_to_es("emails_output.csv")
+    publish_to_es("/Users/tal/PycharmProjects/RepLie/emails_output.csv")
