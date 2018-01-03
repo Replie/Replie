@@ -10,8 +10,12 @@ import csv
 import email
 import pandas as pd
 import re
+
+import sys
 from elasticsearch import Elasticsearch
 import json
+maxInt = sys.maxsize
+decrement = True
 
 
 # Helper functions
@@ -101,4 +105,15 @@ def publish_to_es(input_csv_path):
 if __name__ == '__main__':
     input_csv = '/Users/tal/Downloads/emails.csv'
     # parse(input_csv)
+    while decrement:
+        # decrease the maxInt value by factor 10
+        # as long as the OverflowError occurs.
+
+        decrement = False
+        try:
+            csv.field_size_limit(maxInt)
+        except OverflowError:
+            maxInt = int(maxInt / 10)
+            decrement = True
+
     publish_to_es("emails_output.csv")
