@@ -101,4 +101,4 @@ def publish_to_es(input_csv_path):
 if __name__ == '__main__':
     input_csv = '/Users/tal/Downloads/emails.csv'
     # parse(input_csv)
-    publish_to_es("/Users/tal/PycharmProjects/RepLie/emails_output.csv")
+    publish_to_es("emails_output.csv")
