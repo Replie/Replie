@@ -92,6 +92,7 @@ def publish_to_es(input_csv_path):
         "X-FileName", "content", "user")
 
     try:
+        log.info("Starting Process")
         csv_file.readline()  # skip headers
         reader = csv.DictReader(csv_file, field_names)
         rows_processed = 0
@@ -115,7 +116,7 @@ def publish_to_es(input_csv_path):
                     es.index(index='enron-emails-1', doc_type='email', id=msg_id, body=j)
                     rows_processed += 1
                     if rows_processed % 1000 == 0:
-                        log.info("Processed %s rows", i)
+                        log.info("Processed %s rows", rows_processed)
             except TypeError as e:
                 log.error("TypeError Caught in Row: #%s Reason: %s", i, repr(e))
             except SyntaxError as e:

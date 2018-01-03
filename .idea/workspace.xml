@@ -34,8 +34,8 @@
       <file leaf-file-name="emails_parser.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dataset/emails_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="305">
-              <caret line="26" column="20" lean-forward="true" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
+            <state relative-caret-position="198">
+              <caret line="118" column="69" lean-forward="true" selection-start-line="118" selection-start-column="69" selection-end-line="118" selection-end-column="69" />
               <folding>
                 <element signature="e#116#126#0" expanded="true" />
               </folding>
@@ -501,7 +501,14 @@
       <option name="project" value="LOCAL" />
       <updated>1515000275135</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="mor logging">
+      <created>1515000321625</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1515000321625</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -865,8 +872,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dataset/emails_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="26" column="20" lean-forward="true" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
+        <state relative-caret-position="198">
+          <caret line="118" column="69" lean-forward="true" selection-start-line="118" selection-start-column="69" selection-end-line="118" selection-end-column="69" />
           <folding>
             <element signature="e#116#126#0" expanded="true" />
           </folding>
