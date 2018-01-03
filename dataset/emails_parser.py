@@ -10,12 +10,18 @@ import csv
 import email
 import pandas as pd
 import re
-
+import logging
 import sys
 from elasticsearch import Elasticsearch
 import json
+
 maxInt = sys.maxsize
 decrement = True
+
+log = logging.getLogger('emails')
+hand = logging.FileHandler("log_email_parser.log")
+hand.setLevel(logging.DEBUG)
+log.addHandler(hand)
 
 
 # Helper functions
@@ -41,7 +47,7 @@ def split_email_addresses(line):
 def parse(input_csv_path):
     # Read the data into a DataFrame
     emails_df = pd.read_csv(input_csv_path, nrows=10)
-    print(emails_df.shape)
+    log.debug(emails_df.shape)
     emails_df.head()
     # Parse the emails into a list email objects
     messages = list(map(email.message_from_string, emails_df['message']))
@@ -78,28 +84,43 @@ def publish_to_es(input_csv_path):
     field_names = (
         "Message-ID", "Date", "From", "To", "Subject", "X-From", "X-To", "X-cc", "X-bcc", "X-Folder", "X-Origin",
         "X-FileName", "content", "user")
-    csv_file.readline()
-    reader = csv.DictReader(csv_file, field_names)
-    for row in reader:
-        try:
-            from_raw = row['From']
+    try:
+        csv_file.readline()  # skip headers
+        reader = csv.DictReader(csv_file, field_names)
+        rows_processed = 0
+        for i, row in enumerate(reader):
+            try:
+                if row:
+                    msg_id = row['Message-ID']
+                    if not msg_id:
+                        log.debug("No Message ID for  #%s", i)
+                        msg_id = None
+                    from_raw = row['From']
+                    if from_raw:
+                        from_m = eval(re.sub(r'frozenset\(|\)', "", from_raw))
+                        row['From'] = list(from_m)
 
-            if from_raw:
-                from_m = eval(re.sub(r'frozenset\(|\)', "", from_raw))
-                row['From'] = list(from_m)
-
-            to_raw = row['To']
-            if to_raw:
-                to = eval(re.sub(r'frozenset\(|\)', "", to_raw))
-                row['To'] = list(to)
-            j = json.dumps(row)
-            es.index(index='enron-emails-1', doc_type='email', body=j)
-        except TypeError:
-            print(row)
-        except SyntaxError:
-            print("row !!!! %s" % list(row.values()))
-        except csv.Error:
-            print(row)
+                    to_raw = row['To']
+                    if to_raw:
+                        to = eval(re.sub(r'frozenset\(|\)', "", to_raw))
+                        row['To'] = list(to)
+                    j = json.dumps(row)
+                    es.index(index='enron-emails-1', doc_type='email', id=msg_id, body=j)
+                    rows_processed += 1
+                    if rows_processed % 1000 == 0:
+                        log.info("Processed %s rows", i)
+            except TypeError as e:
+                log.error("TypeError Caught in Row: #%s Reason: %s", i, repr(e))
+            except SyntaxError as e:
+                log.error("SyntaxError Caught in Row: #%s Reason: %s", i, repr(e))
+            except csv.Error as e:
+                log.error("csv.Error Caught in Row: #%s Reason: %s", i, repr(e))
+            except KeyError as e:
+                log.error("KeyError Caught in Row: #%s Reason: %s", i, repr(e))
+            except Exception as e:
+                log.error("Exception Caught in Row: #%s Reason: %s", i, repr(e))
+    except Exception as e:
+        log.error("Exception Caught Reason: %s", repr(e))
 
 
 if __name__ == '__main__':
