@@ -129,8 +129,12 @@ class Lang(object):
         self.word2count = {}
         self.n_words = 2
 
-    def index_sentence(self, sentence):
+    def index_sentence_by_word(self, sentence):
         for w in sentence.split(' '):
+            self.index_word(w)
+
+    def index_sentence_by_char(self, sentence):
+        for w in sentence:
             self.index_word(w)
 
     def index_word(self, word):

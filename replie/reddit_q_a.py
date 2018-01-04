@@ -26,7 +26,7 @@ good_prefixes = (
 
 def normalize_string(s):
     s = s.lower().strip()
-    s = re.sub(r"([.!?])", r" \1", s)
+    s = re.sub(r"([.!?,])", r" \1", s)
     s = re.sub(r"[^a-zA-Zא-ת.!?]+", r" ", s)
     return s
 
@@ -48,14 +48,14 @@ def read_question_answers(reverse=False):
     # Reverse pairs, make Lang instances
     if reverse:
         pairs = [list(reverse(p)) for p in pairs]
-        input_lang = Lang('eng')
-        output_lang = Lang('eng')
+        lang = Lang('eng')
+        # output_lang = Lang('eng')
     else:
         pairs = [list((p)) for p in pairs]
-        input_lang = Lang('eng')
-        output_lang = Lang('eng')
+        lang = Lang('eng')
+        # output_lang = Lang('eng')
 
-    return input_lang, output_lang, pairs
+    return lang, pairs
 
 
 def print_pair(p):
@@ -72,7 +72,7 @@ def filter_pairs(pairs):
 
 
 def prepare_data(reverse=False):
-    input_lang, output_lang, pairs = read_question_answers(reverse)
+    lang, pairs = read_question_answers(reverse)
     print("Read %s sentence pairs" % len(pairs))
 
     pairs = filter_pairs(pairs)
@@ -80,14 +80,14 @@ def prepare_data(reverse=False):
 
     print("Indexing words...")
     for pair in pairs:
-        input_lang.index_sentence(pair[0])
-        output_lang.index_sentence(pair[1])
+        lang.index_sentence_by_char(pair[0])
+        lang.index_sentence_by_char(pair[1])
 
-    return input_lang, output_lang, pairs
+    return lang, pairs
 
 
 def indexes_from_sentence(lang, sentence):
-    return [lang.word2index[word] for word in sentence.split(' ')]
+    return [lang.word2index[word] for word in sentence]
 
 
 def variable_from_sentence(lang, sentence):
@@ -97,8 +97,8 @@ def variable_from_sentence(lang, sentence):
 
 
 def variables_from_pair(pair):
-    input_variable = variable_from_sentence(input_lang, pair[0])
-    target_variable = variable_from_sentence(output_lang, pair[1])
+    input_variable = variable_from_sentence(lang, pair[0])
+    target_variable = variable_from_sentence(lang, pair[1])
     return (input_variable, target_variable)
 
 
@@ -184,7 +184,7 @@ def show_plot(points):
 
 
 def evaluate(sentence, max_length=MAX_LENGTH):
-    input_variable = variable_from_sentence(input_lang, sentence)
+    input_variable = variable_from_sentence(lang, sentence)
     input_length = input_variable.size()[0]
 
     # Run through encoder
@@ -213,7 +213,7 @@ def evaluate(sentence, max_length=MAX_LENGTH):
             decoded_words.append('<EOS>')
             break
         else:
-            decoded_words.append(output_lang.index2word[ni])
+            decoded_words.append(lang.index2word[ni])
 
         # Next input is chosen word
         decoder_input = Variable(torch.LongTensor([[ni]]))
@@ -237,7 +237,7 @@ clip = 5.0
 
 
 if __name__ == '__main__':
-    input_lang, output_lang, pairs = prepare_data()
+    lang, pairs = prepare_data()
 
     # Print an example pair
     print_pair(random.choice(pairs))
@@ -272,8 +272,8 @@ if __name__ == '__main__':
     dropout_p = 0.05
 
     # Initialize models
-    encoder = EncoderRNN(input_lang.n_words, hidden_size, n_layers)
-    decoder = AttnDecoderRNN(attn_model, hidden_size, output_lang.n_words, n_layers, dropout_p=dropout_p)
+    encoder = EncoderRNN(lang.n_words, hidden_size, n_layers)
+    decoder = AttnDecoderRNN(attn_model, hidden_size, lang.n_words, n_layers, dropout_p=dropout_p)
 
     # Initialize optimizers and criterion
     learning_rate = 0.0001
@@ -281,9 +281,9 @@ if __name__ == '__main__':
     decoder_optimizer = torch.optim.Adam(decoder.parameters(), lr=learning_rate)
     criterion = torch.nn.NLLLoss()
 
-    n_epochs = 50000
+    n_epochs = 1000
     plot_every = 200
-    print_every = 1000
+    print_every = 100
 
     # Keep track of time elapsed and running averages
     start = time.time()
@@ -324,6 +324,9 @@ if __name__ == '__main__':
             plot_loss_total = 0
 
     print("Done!")
+
+    torch.save(encoder.state_dict(), "EncoderRNN.model")
+    torch.save(decoder.state_dict(), "AttnDecoderRNN.model")
 
     for i in range(5):
         evaluate_randomly()
