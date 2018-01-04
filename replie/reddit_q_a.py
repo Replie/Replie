@@ -49,7 +49,7 @@ def read_question_answers(reverse=False):
 
     # Reverse pairs, make Lang instances
     if reverse:
-        pairs = [list(reverse(p)) for p in pairs]
+        pairs = [list(reversed(p)) for p in pairs]
         lang = Lang('eng')
         # output_lang = Lang('eng')
     else:
@@ -82,14 +82,14 @@ def prepare_data(reverse=False):
 
     log.info("Indexing words...")
     for pair in pairs:
-        lang.index_sentence_by_char(pair[0])
-        lang.index_sentence_by_char(pair[1])
+        lang.index_sentence_by_word(pair[0])
+        lang.index_sentence_by_word(pair[1])
 
     return lang, pairs
 
 
 def indexes_from_sentence(lang, sentence):
-    return [lang.word2index[word] for word in sentence]
+    return [lang.word2index[word] for word in sentence.split(' ')]
 
 
 def variable_from_sentence(lang, sentence):
@@ -267,6 +267,8 @@ if __name__ == '__main__':
     #
     # teacher_forcing_ratio = 0.5
     # clip = 5.0
+
+    log.info("Start Train")
 
     attn_model = 'general'
     hidden_size = 500
