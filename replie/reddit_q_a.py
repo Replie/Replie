@@ -240,11 +240,9 @@ clip = 5.0
 
 if __name__ == '__main__':
     lang, pairs = prepare_data()
-
-
+    lang.save('langs.pkl')
     # Print an example pair
     print_pair(random.choice(pairs))
-
     # Testing
 
     # encoder_test = EncoderRNN(10, 10, 2)

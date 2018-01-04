@@ -10,8 +10,10 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+import pickle
 
 MAX_LENGTH = 20
+
 
 class Attn(nn.Module):
     def __init__(self, method, hidden_size, max_length=MAX_LENGTH):
@@ -145,3 +147,12 @@ class Lang(object):
             self.n_words = self.n_words + 1
         else:
             self.word2count[word] += 1
+
+    def save(self, filepath):
+        f = open(filepath, 'wb')
+        pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    @classmethod
+    def load(cls, filepath):
+        f = open(filepath, 'rb')
+        return pickle.load(f)
