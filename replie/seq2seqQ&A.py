@@ -38,6 +38,31 @@ def normalize_string(s):
     return s
 
 
+def read_question_answers(reverse=False):
+    print("Reading lines...")
+
+    # Read the file and split into lines
+    question = open('data/reddit/questions.txt').read().strip().split('\n')
+    answers = open('data/reddit/answers.txt').read().strip().split('\n')
+
+    # Split every line into pairs and normalize
+    # pairs = [[normalize_string(s) for s in question] normalize_string(s) for s in answers]
+
+    pairs = zip([normalize_string(s) for s in question], [normalize_string(s) for s in answers])
+    # pairs = [[normalize_string(s) for s in l.split('\t')] for l in lines]
+
+    # Reverse pairs, make Lang instances
+    if reverse:
+        pairs = [list(reversed(p)) for p in pairs]
+        input_lang = Lang('eng')
+        output_lang = Lang('eng')
+    else:
+        input_lang = Lang('eng')
+        output_lang = Lang('eng')
+
+    return input_lang, output_lang, pairs
+
+
 def read_langs(lang1, lang2, reverse=False):
     print("Reading lines...")
 
@@ -74,7 +99,7 @@ def filter_pairs(pairs):
 
 
 def prepare_data(lang1_name, lang2_name, reverse=False):
-    input_lang, output_lang, pairs = read_langs(lang1_name, lang2_name, reverse)
+    input_lang, output_lang, pairs = read_question_answers(reverse)
     print("Read %s sentence pairs" % len(pairs))
 
     pairs = filter_pairs(pairs)

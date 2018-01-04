@@ -11,6 +11,7 @@ from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+MAX_LENGTH = 20
 
 class Attn(nn.Module):
     def __init__(self, method, hidden_size, max_length=MAX_LENGTH):

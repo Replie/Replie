@@ -1,27 +1,20 @@
-#!/usr/bin/python
-# coding=utf-8
-"""
-Author: tal 
-Created on 22/12/2017
-All Rights reserved to IDOMOO.INC 2013
-
-"""
-
-import torch
-from torch import nn, optim
-from torch.autograd import Variable
-import re
+# -*- coding utf-8 -*-
 import random
+import re
+
 import time
+
 import math
+import torch
+from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-from replie.models import Lang, AttnDecoderRNN, EncoderRNN
+from replie.models import Lang, EncoderRNN, AttnDecoderRNN
 
+MAX_LENGTH = 20
 SOS_TOKEN = 0
 EOS_TOKEN = 1
-MAX_LENGTH = 20
 
 good_prefixes = (
     "i am ", "i m ",
@@ -38,23 +31,29 @@ def normalize_string(s):
     return s
 
 
-def read_langs(lang1, lang2, reverse=False):
+def read_question_answers(reverse=False):
     print("Reading lines...")
 
     # Read the file and split into lines
-    lines = open('data/%s-%s.txt' % (lang1, lang2)).read().strip().split('\n')
+    question = open('../data/reddit/questions.txt').read().strip().split('\n')
+    answers = open('../data/reddit/answers.txt').read().strip().split('\n')
 
     # Split every line into pairs and normalize
-    pairs = [[normalize_string(s) for s in l.split('\t')] for l in lines]
+    # pairs = [[normalize_string(s) for s in question] normalize_string(s) for s in answers]
+
+    pairs = zip([normalize_string(s) for s in question], [normalize_string(s) for s in answers])
+    # pairs = zip(question, answers)
+    # pairs = [[normalize_string(s) for s in l.split('\t')] for l in lines]
 
     # Reverse pairs, make Lang instances
     if reverse:
-        pairs = [list(reversed(p)) for p in pairs]
-        input_lang = Lang(lang2)
-        output_lang = Lang(lang1)
+        pairs = [list(reverse(p)) for p in pairs]
+        input_lang = Lang('eng')
+        output_lang = Lang('eng')
     else:
-        input_lang = Lang(lang1)
-        output_lang = Lang(lang2)
+        pairs = [list((p)) for p in pairs]
+        input_lang = Lang('eng')
+        output_lang = Lang('eng')
 
     return input_lang, output_lang, pairs
 
@@ -65,16 +64,15 @@ def print_pair(p):
 
 
 def filter_pair(p):
-    return len(p[0].split(' ')) < MAX_LENGTH and len(p[1].split(' ')) < MAX_LENGTH and \
-           p[1].startswith(good_prefixes)
+    return len(p[0].split(' ')) < MAX_LENGTH and len(p[1].split(' ')) < MAX_LENGTH #and p[1].startswith(good_prefixes)
 
 
 def filter_pairs(pairs):
     return [pair for pair in pairs if filter_pair(pair)]
 
 
-def prepare_data(lang1_name, lang2_name, reverse=False):
-    input_lang, output_lang, pairs = read_langs(lang1_name, lang2_name, reverse)
+def prepare_data(reverse=False):
+    input_lang, output_lang, pairs = read_question_answers(reverse)
     print("Read %s sentence pairs" % len(pairs))
 
     pairs = filter_pairs(pairs)
@@ -86,12 +84,6 @@ def prepare_data(lang1_name, lang2_name, reverse=False):
         output_lang.index_sentence(pair[1])
 
     return input_lang, output_lang, pairs
-
-
-input_lang, output_lang, pairs = prepare_data('eng', 'heb', True)
-
-# Print an example pair
-print(print_pair(random.choice(pairs)))
 
 
 def indexes_from_sentence(lang, sentence):
@@ -108,31 +100,6 @@ def variables_from_pair(pair):
     input_variable = variable_from_sentence(input_lang, pair[0])
     target_variable = variable_from_sentence(output_lang, pair[1])
     return (input_variable, target_variable)
-
-
-# Testing
-
-encoder_test = EncoderRNN(10, 10, 2)
-decoder_test = AttnDecoderRNN('general', 10, 10, 2)
-
-encoder_hidden = encoder_test.init_hidden()
-
-word_input = Variable(torch.LongTensor([1, 2, 3]))
-encoder_outputs, encoder_hidden = encoder_test(word_input, encoder_hidden)
-
-word_inputs = Variable(torch.LongTensor([1, 2, 3]))
-decoder_attns = torch.zeros(1, 3, 3)
-decoder_hidden = encoder_hidden
-decoder_context = Variable(torch.zeros(1, decoder_test.hidden_size))
-
-for i in range(3):
-    decoder_output, decoder_context, decoder_hidden, decoder_attn = decoder_test(word_inputs[i], decoder_context,
-                                                                                 decoder_hidden, encoder_outputs)
-    print(decoder_output.size(), decoder_hidden.size(), decoder_attn.size())
-    decoder_attns[0, i] = decoder_attn.squeeze(0).cpu().data
-
-teacher_forcing_ratio = 0.5
-clip = 5.0
 
 
 def train(input_variable, target_variable, encoder, decoder,
@@ -208,75 +175,12 @@ def time_since(since, percent):
     return '%s (- %s)' % (as_minutes(s), as_minutes(rs))
 
 
-attn_model = 'general'
-hidden_size = 500
-n_layers = 2
-dropout_p = 0.05
-
-# Initialize models
-encoder = EncoderRNN(input_lang.n_words, hidden_size, n_layers)
-decoder = AttnDecoderRNN(attn_model, hidden_size, output_lang.n_words, n_layers, dropout_p=dropout_p)
-
-# Initialize optimizers and criterion
-learning_rate = 0.0001
-encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate)
-criterion = nn.NLLLoss()
-
-n_epochs = 50000
-plot_every = 200
-print_every = 1000
-
-# Keep track of time elapsed and running averages
-start = time.time()
-plot_losses = []
-print_loss_total = 0  # Reset every print_every
-plot_loss_total = 0  # Reset every plot_every
-
-# Begin!
-for epoch in range(1, n_epochs + 1):
-
-    # Get training data for this cycle
-    training_pair = variables_from_pair(random.choice(pairs))
-    input_variable = training_pair[0]
-    target_variable = training_pair[1]
-
-    # Run the train function
-    loss = train(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
-
-    # Keep track of loss
-    print_loss_total += loss
-    plot_loss_total += loss
-
-    if epoch == 0:
-        continue
-
-    if epoch % print_every == 0:
-        print_loss_avg = print_loss_total / print_every
-        print_loss_total = 0
-
-        percent = float(float(epoch) / float(n_epochs))
-        print_summary = '%s (%d %d%%) %.4f' % (
-            time_since(start, percent), epoch, epoch / n_epochs * 100, print_loss_avg)
-        print(print_summary)
-
-    if epoch % plot_every == 0:
-        plot_loss_avg = plot_loss_total / plot_every
-        plot_losses.append(plot_loss_avg)
-        plot_loss_total = 0
-
-print("Done!")
-
-
 def show_plot(points):
     plt.figure()
     fig, ax = plt.subplots()
     loc = ticker.MultipleLocator(base=0.2)  # put ticks at regular intervals
     ax.yaxis.set_major_locator(loc)
     plt.plot(points)
-
-
-show_plot(plot_losses)
 
 
 def evaluate(sentence, max_length=MAX_LENGTH):
@@ -328,6 +232,102 @@ def evaluate_randomly():
     print(output_sentence)
 
 
-for i in range(5):
-    evaluate_randomly()
-    print('\n')
+teacher_forcing_ratio = 0.5
+clip = 5.0
+
+
+if __name__ == '__main__':
+    input_lang, output_lang, pairs = prepare_data()
+
+    # Print an example pair
+    print_pair(random.choice(pairs))
+
+    # Testing
+
+    # encoder_test = EncoderRNN(10, 10, 2)
+    # decoder_test = AttnDecoderRNN('general', 10, 10, 2)
+    #
+    # encoder_hidden = encoder_test.init_hidden()
+    #
+    # word_input = Variable(torch.LongTensor([1, 2, 3]))
+    # encoder_outputs, encoder_hidden = encoder_test(word_input, encoder_hidden)
+    #
+    # word_inputs = Variable(torch.LongTensor([1, 2, 3]))
+    # decoder_attns = torch.zeros(1, 3, 3)
+    # decoder_hidden = encoder_hidden
+    # decoder_context = Variable(torch.zeros(1, decoder_test.hidden_size))
+    #
+    # for i in range(3):
+    #     decoder_output, decoder_context, decoder_hidden, decoder_attn = decoder_test(word_inputs[i], decoder_context,
+    #                                                                                  decoder_hidden, encoder_outputs)
+    #     print(decoder_output.size(), decoder_hidden.size(), decoder_attn.size())
+    #     decoder_attns[0, i] = decoder_attn.squeeze(0).cpu().data
+    #
+    # teacher_forcing_ratio = 0.5
+    # clip = 5.0
+
+    attn_model = 'general'
+    hidden_size = 500
+    n_layers = 2
+    dropout_p = 0.05
+
+    # Initialize models
+    encoder = EncoderRNN(input_lang.n_words, hidden_size, n_layers)
+    decoder = AttnDecoderRNN(attn_model, hidden_size, output_lang.n_words, n_layers, dropout_p=dropout_p)
+
+    # Initialize optimizers and criterion
+    learning_rate = 0.0001
+    encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=learning_rate)
+    decoder_optimizer = torch.optim.Adam(decoder.parameters(), lr=learning_rate)
+    criterion = torch.nn.NLLLoss()
+
+    n_epochs = 50000
+    plot_every = 200
+    print_every = 1000
+
+    # Keep track of time elapsed and running averages
+    start = time.time()
+    plot_losses = []
+    print_loss_total = 0  # Reset every print_every
+    plot_loss_total = 0  # Reset every plot_every
+
+    # Begin!
+    for epoch in range(1, n_epochs + 1):
+
+        # Get training data for this cycle
+        training_pair = variables_from_pair(random.choice(pairs))
+        input_variable = training_pair[0]
+        target_variable = training_pair[1]
+
+        # Run the train function
+        loss = train(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
+
+        # Keep track of loss
+        print_loss_total += loss
+        plot_loss_total += loss
+
+        if epoch == 0:
+            continue
+
+        if epoch % print_every == 0:
+            print_loss_avg = print_loss_total / print_every
+            print_loss_total = 0
+
+            percent = float(float(epoch) / float(n_epochs))
+            print_summary = '%s (%d %d%%) %.4f' % (
+                time_since(start, percent), epoch, epoch / n_epochs * 100, print_loss_avg)
+            print(print_summary)
+
+        if epoch % plot_every == 0:
+            plot_loss_avg = plot_loss_total / plot_every
+            plot_losses.append(plot_loss_avg)
+            plot_loss_total = 0
+
+    print("Done!")
+
+    for i in range(5):
+        evaluate_randomly()
+        print('\n')
+
+
+
