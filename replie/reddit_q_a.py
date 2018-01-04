@@ -13,7 +13,7 @@ import matplotlib.ticker as ticker
 
 from replie.models import Lang, EncoderRNN, AttnDecoderRNN
 
-MAX_LENGTH = 20
+MAX_LENGTH = 150
 SOS_TOKEN = 0
 EOS_TOKEN = 1
 
@@ -66,7 +66,7 @@ def print_pair(p):
 
 
 def filter_pair(p):
-    return len(p[0].split(' ')) < MAX_LENGTH and len(p[1].split(' ')) < MAX_LENGTH #and p[1].startswith(good_prefixes)
+    return len(p[0]) < MAX_LENGTH and len(p[1]) < MAX_LENGTH #and p[1].startswith(good_prefixes)
 
 
 def filter_pairs(pairs):
@@ -82,14 +82,14 @@ def prepare_data(reverse=False):
 
     log.info("Indexing words...")
     for pair in pairs:
-        lang.index_sentence_by_word(pair[0])
-        lang.index_sentence_by_word(pair[1])
+        lang.index_sentence_by_char(pair[0])
+        lang.index_sentence_by_char(pair[1])
 
     return lang, pairs
 
 
 def indexes_from_sentence(lang, sentence):
-    return [lang.word2index[word] for word in sentence.split(' ')]
+    return [lang.word2index[word] for word in sentence]
 
 
 def variable_from_sentence(lang, sentence):
@@ -241,6 +241,7 @@ clip = 5.0
 if __name__ == '__main__':
     lang, pairs = prepare_data()
 
+
     # Print an example pair
     print_pair(random.choice(pairs))
 
@@ -285,9 +286,9 @@ if __name__ == '__main__':
     decoder_optimizer = torch.optim.Adam(decoder.parameters(), lr=learning_rate)
     criterion = torch.nn.NLLLoss()
 
-    n_epochs = 1000
+    n_epochs = 10000
     plot_every = 200
-    print_every = 100
+    print_every = 1000
 
     # Keep track of time elapsed and running averages
     start = time.time()
