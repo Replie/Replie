@@ -1,4 +1,5 @@
 # -*- coding utf-8 -*-
+import logging
 import random
 import re
 
@@ -16,12 +17,13 @@ MAX_LENGTH = 20
 SOS_TOKEN = 0
 EOS_TOKEN = 1
 
-good_prefixes = (
-    "i am ", "i m ",
-    "he is", "he s ",
-    "she is", "she s",
-    "you are", "you re "
-)
+log = logging.getLogger('reddit_q_a')
+log.setLevel(logging.DEBUG)
+hand = logging.FileHandler("log_reddit_q_a.log")
+hand.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+hand.setFormatter(formatter)
+log.addHandler(hand)
 
 
 def normalize_string(s):
@@ -32,11 +34,11 @@ def normalize_string(s):
 
 
 def read_question_answers(reverse=False):
-    print("Reading lines...")
+    log.info("Reading lines...")
 
     # Read the file and split into lines
-    question = open('../data/reddit/questions.txt').read().strip().split('\n')
-    answers = open('../data/reddit/answers.txt').read().strip().split('\n')
+    question = open('questions.txt').read().strip().split('\n')
+    answers = open('ans.txt').read().strip().split('\n')
 
     # Split every line into pairs and normalize
     # pairs = [[normalize_string(s) for s in question] normalize_string(s) for s in answers]
@@ -59,8 +61,8 @@ def read_question_answers(reverse=False):
 
 
 def print_pair(p):
-    print(p[0])
-    print(p[1])
+    log.info(p[0])
+    log.info(p[1])
 
 
 def filter_pair(p):
@@ -73,12 +75,12 @@ def filter_pairs(pairs):
 
 def prepare_data(reverse=False):
     lang, pairs = read_question_answers(reverse)
-    print("Read %s sentence pairs" % len(pairs))
+    log.info("Read %s sentence pairs" % len(pairs))
 
     pairs = filter_pairs(pairs)
-    print("Trimmed to %s sentence pairs" % len(pairs))
+    log.info("Trimmed to %s sentence pairs" % len(pairs))
 
-    print("Indexing words...")
+    log.info("Indexing words...")
     for pair in pairs:
         lang.index_sentence_by_char(pair[0])
         lang.index_sentence_by_char(pair[1])
@@ -227,9 +229,9 @@ def evaluate_randomly():
     output_words, decoder_attn = evaluate(pair[0])
     output_sentence = ' '.join(output_words)
 
-    print(pair[0])
-    print(pair[1])
-    print(output_sentence)
+    log.info(pair[0])
+    log.info(pair[1])
+    log.info(output_sentence)
 
 
 teacher_forcing_ratio = 0.5
@@ -316,21 +318,21 @@ if __name__ == '__main__':
             percent = float(float(epoch) / float(n_epochs))
             print_summary = '%s (%d %d%%) %.4f' % (
                 time_since(start, percent), epoch, epoch / n_epochs * 100, print_loss_avg)
-            print(print_summary)
+            log.info(print_summary)
 
         if epoch % plot_every == 0:
             plot_loss_avg = plot_loss_total / plot_every
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
 
-    print("Done!")
+    log.info("Done!")
 
     torch.save(encoder.state_dict(), "EncoderRNN.model")
     torch.save(decoder.state_dict(), "AttnDecoderRNN.model")
 
     for i in range(5):
         evaluate_randomly()
-        print('\n')
+        log.info('\n')
 
 
 
