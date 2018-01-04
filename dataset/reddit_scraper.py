@@ -43,7 +43,7 @@ end_time = 1514678400
 
 while True:
     try:
-        for sub in subred.submissions(start=start_time,end=end_time):
+        for sub in subred.submissions(start=start_time, end=end_time):
             if len(sub.comments) > 0:
                 log.info("----------------------------------------------")
                 title = sub.title.replace('\n', ' ')
