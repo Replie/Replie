@@ -1,4 +1,6 @@
 import codecs
+import re
+
 from elasticsearch import Elasticsearch
 
 
@@ -19,10 +21,36 @@ def print_hits(results):
     print()
 
 
+def parse_emails(res):
+    print("Start parsing emails")
+    # expression = "-----Original Message-----[\n]*From:[ 	]*[a-zA-Z]*[\,]* [a-zA-Z]*[ ]*[\n]*Sent:[	]*[a-zA-Z]*\, [a-zA-z]* \d{2}\, \d{4} \d{1,2}:\d{1,2} [PM]*[AM]*[\n]*To:	[a-zA-Z]+[\,]*[ ]*[a-zA-Z]+[\n]*Subject:	[a-zA-Z:?,]*"
+    expression = "-----Original Message-----\nFrom:.*(?=\n)\n.*Sent:.*(?=\n)\n.*(?=\n)\n.*"
+    messages = list()
+    unmatching = list()
+    count = 0
+    for email in res['hits']['hits']:
+        chat = re.split(expression, email['_source']['content'].strip())
+        for s in chat[:]:
+            if "Original Message" in s or "Subject:" in s or "From:" in s or "To:" in s:
+                unmatching.append(s)
+                chat.remove(s)
+            if "" in s:
+                count += 1
+        for i in range(1, len(chat)):
+            from_sen = chat[i].strip().replace('\n', ' ')
+            to_sen = chat[i - 1].strip().replace('\n', ' ')
+            if from_sen is not '' and to_sen is not '':
+                messages.append((chat[i].strip(), chat[i - 1].strip()))
+            # else:
+            # print("From - " + from_sen + "To - " + to_sen)
+
+    return messages
+
+
 def main():
     es = Elasticsearch([{'host': '193.106.55.110', 'port': 9200}])
     # res = es.search(index="test", doc_type="articles", body={"query": {"match": {"content": "fox"}}})
-    res = es.search(index='enron-emails-1', size=10, scroll='2m', doc_type='email',
+    res = es.search(index='enron-emails-1', scroll='2m', size=10000, doc_type='email',
                     body={
                         "query": {
                             "bool": {
@@ -57,12 +85,14 @@ def main():
                             }
                         }
                     })
+    print("Fetch %d emails from es total %d" % (len(res['hits']['hits']), res['hits']['total']))
+    from_file = open('email-from.txt', 'w', encoding='utf-8')
+    to_file = open('email-to.txt', 'w', encoding='utf-8')
+    method_name(from_file, res, to_file)
     sid = res['_scroll_id']
     scroll_size = res['hits']['total']
-    from_file = codecs.open('from.txt', 'w', encoding='utf-8')
-    to_file = codecs.open('to.txt', 'w', encoding='utf-8')
     u = 0
-    while (scroll_size > 0):
+    while scroll_size > 0:
         print(u)
         u = u + 1
         res = es.scroll(scroll_id=sid, scroll='2m')
@@ -71,51 +101,87 @@ def main():
         # Get the number of results that we returned in the last scroll
         scroll_size = len(res['hits']['hits'])
         print("scroll size: " + str(scroll_size))
-        for email in res['hits']['hits']:
-            s = email['_source']['content']
-            unvalid = ['To:', 'From:', 'Sent:', 'mailto:', '@ENRON', 'atthew.Lenhart@enron.com',
-                       'erichardson@sarofim.com', 'cc:', 'Message---', 'RE:']
-            arr = s.split('\n')
-            arr_rev = []
-            i = 1
-            # print(arr)
-            for st in arr[:]:
-                for p in unvalid:
-                    if p.lower() in st.lower():
-                        arr.remove(st)
-                        break
-                if st == '':
-                    arr.remove(st)
-            print(arr)
-            sentence = list()
-            arr_sen = list()
-            for s in arr[:]:
-                if '-Original' not in s and 'Subject:' not in s and '- Original' not in s and s:
-                    sentence.append(s)
-                else:
-                    if len(sentence) >= 1:
-                        arr_sen.append(' '.join(sentence))
-                    sentence = list()
-            for k in arr_sen:
-                arr_rev.append(arr_sen[-i])
-                i = i + 1
-            # print(arr_rev)
-            i = 0
-            num = len(arr_rev) - 1
-            while i < num:
-                if len(arr_rev[i]) <= 300 and len(arr_rev[i + 1]) <= 300:
-                    from_sen = arr_rev[i].strip(' \t\r')
-                    from_file.write(from_sen + '\n')
-                    to_sen = arr_rev[i + 1].strip(' \t\r')
-                    to_file.write(to_sen + '\n')
-                i += 1
-            from_file.flush()
-            to_file.flush()
+        method_name(from_file, res, to_file)
+
     from_file.close()
     to_file.close()
+
+    print("Done!")
+
+    # sid = res['_scroll_id']
+    # scroll_size = res['hits']['total']
+    # from_file = codecs.open('from.txt', 'w', encoding='utf-8')
+    # to_file = codecs.open('to.txt', 'w', encoding='utf-8')
+    # u = 0
+    # while (scroll_size > 0):
+    #     print(u)
+    #     u = u + 1
+    #     res = es.scroll(scroll_id=sid, scroll='2m')
+    #     # Update the scroll ID
+    #     sid = res['_scroll_id']
+    #     # Get the number of results that we returned in the last scroll
+    #     scroll_size = len(res['hits']['hits'])
+    #     print("scroll size: " + str(scroll_size))
+    #     for email in res['hits']['hits']:
+    #         s = email['_source']['content']
+    #         unvalid = ['To:', 'From:', 'Sent:', 'mailto:', '@ENRON', 'atthew.Lenhart@enron.com',
+    #                    'erichardson@sarofim.com', 'cc:', 'Message---', 'RE:']
+    #         arr = s.split('\n')
+    #         arr_rev = []
+    #         i = 1
+    #         # print(arr)
+    #         for st in arr[:]:
+    #             for p in unvalid:
+    #                 if p.lower() in st.lower():
+    #                     arr.remove(st)
+    #                     break
+    #             if st == '':
+    #                 arr.remove(st)
+    #         print(arr)
+    #         sentence = list()
+    #         arr_sen = list()
+    #         for s in arr[:]:
+    #             if '-Original' not in s and 'Subject:' not in s and '- Original' not in s and s:
+    #                 sentence.append(s)
+    #             else:
+    #                 if len(sentence) >= 1:
+    #                     arr_sen.append(' '.join(sentence))
+    #                 sentence = list()
+    #         for k in arr_sen:
+    #             arr_rev.append(arr_sen[-i])
+    #             i = i + 1
+    #         # print(arr_rev)
+    #         i = 0
+    #         num = len(arr_rev) - 1
+    #         while i < num:
+    #             if len(arr_rev[i]) <= 300 and len(arr_rev[i + 1]) <= 300:
+    #                 from_sen = arr_rev[i].strip(' \t\r')
+    #                 from_file.write(from_sen + '\n')
+    #                 to_sen = arr_rev[i + 1].strip(' \t\r')
+    #                 to_file.write(to_sen + '\n')
+    #             i += 1
+    #         from_file.flush()
+    #         to_file.flush()
+    # from_file.close()
+    # to_file.close()
+
     # print("%d documents found" % res['hits']['total'])
     # for doc in res['hits']['hits']:
     #     print("%s) %s" % (doc['_id'], doc['_source']['content']))
+
+
+def method_name(from_file, res, to_file):
+    messages = parse_emails(res)
+    print("Total %d messages tuples, without duplicates %d" % (len(messages), len(set(messages))))
+    messages = list(set(messages))
+    print("Writing to files")
+    for m in messages:
+        from_sen = m[0].strip().replace('\n', ' ')
+        from_file.write(from_sen + '\n')
+        to_sen = m[1].strip().replace('\n', ' ')
+        to_file.write(to_sen + '\n')
+    from_file.flush()
+    to_file.flush()
 
 
 if __name__ == "__main__":
